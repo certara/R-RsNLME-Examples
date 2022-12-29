@@ -1,4 +1,4 @@
-# Example 11: Setpwise Covariate Search & Bootstrapping (Two Compartment IV Bolus)
+# Example 11: Stepwise Covariate Search & Bootstrapping (Two Compartment IV Bolus)
 
 The purpose of this example is to demonstrate how to:
 
