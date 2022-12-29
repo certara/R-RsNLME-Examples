@@ -1,0 +1,58 @@
+###################################################################################################################################
+##                              Description
+##
+## The purpose of this file is to demonstrate how to implement a gamma absorption delay model in PML. 
+##
+## The model demonstrated is a one-compartment model with 1st-order clearance and the delay time between 
+## the administration time of the drug and the time when the drug molecules reach the central compartment 
+## is assumed to be gamma distributed. In other words, the model is described as follows: 
+##      dA1(t)/dt = sum_{i=1}^{m}D_{i}gammaPDF(t - t_{Di}; rateParameter, shapeParameter) - Cl/V * A1(t)
+## Here
+##    - A1 denotes the drug amount at central compartment with V and Cl respectively being the central volume
+##      distribution and central clearance rate 
+##    - m denotes the number of bolus dosing events
+##    - D_{i} is the amount of dose administered at time t_{Di} for the ith dosing events
+##    - gammaPDF denotes the probability density function of a gamma distribution with with mean = MeanDelayTime 
+##		and shape parameter being (ShapeParamMinusOne + 1). 
+##
+## Note: for more information on distribute delays, please see 
+## 	https://onlinehelp.certara.com/phoenix/8.3/index.html#t=topics%2FDiscrete_and_distributed_delays.htm%23XREF_92535_Discrete_and
+##
+#####################################################################################################################################
+test(){
+
+	# Central compartment 
+	# Note: the allowed values for "dist" option are Gamma, Weibull, and InverseGaussian
+	delayInfCpt(A1, MeanDelayTime, ShapeParamMinusOne, out = - Cl * C, dist = Gamma)
+	dosepoint(A1)
+	
+	# drug concentration at the central compartment 
+	C = A1 / V 
+	
+	# ============== residual error model ===================================================
+	error(CEps = 0.1)
+	observe(CObs = C * (1 + CEps))
+	
+	# ============== Model parameters =========================================================
+	# ------------ structural model parameters ---------------------------------------------
+	stparm(V = exp(tvlogV + nlogV)) # volume of distribution for central compartment
+	stparm(Cl = exp(tvlogCl + nlogCl)) # central clearance 
+	stparm(MeanDelayTime = exp(tvlogMeanDelayTime + nlogMeanDelayTime)) # mean delay time 
+	stparm(ShapeParamMinusOne = exp(tvlogShapeParamMinusOne)) # (ShapeParameter - 1) 
+	
+	# ---------- fixed effects -----------------------------------------------------------
+	fixef(tvlogV = c(, 5, )) # volume of distribution for central compartment 
+	fixef(tvlogCl = c(, 1, )) # central clearance
+	fixef(tvlogMeanDelayTime = c(, 1, )) # mean delay time 
+	fixef(tvlogShapeParamMinusOne = c(, 2, )) # (ShapeParameter - 1) 
+		
+	
+	# -----------random effects--------------------------------------------------------
+	ranef(diag(nlogV, nlogCl, nlogMeanDelayTime) = c(1, 1, 1))
+	
+	# ========= transform the fixed effects from log-scale to original scale =====
+	secondary(tvV = exp(tvlogV))
+	secondary(tvCl = exp(tvlogCl))
+	secondary(tvMeanDelayTime = exp(tvlogMeanDelayTime))
+	secondary(tvShapeParamMinusOne = exp(tvlogShapeParamMinusOne))
+}

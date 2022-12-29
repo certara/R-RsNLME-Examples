@@ -1,0 +1,64 @@
+test(){
+	##================================================================================================================================
+	##
+	## PK model: one-compartment model with zero-order absorption 
+	## PD model: a delayed Emax model with delay time assumed to be gamma distributed
+	##
+	## Note: For more information on distributed delays, see
+	## https://onlinehelp.certara.com/phoenix/8.3/index.html#t=topics%2FDiscrete_and_distributed_delays.htm%23XREF_92535_Discrete_and
+	##
+	##===============================================================================================================================
+	deriv(A = - Cl * C)	
+	dosepoint(A, duration = D)
+	
+	# drug concentration at the central compartment 
+	C = A / V
+	
+	# -----------------------------------------------------------------------------------------------------------------------------
+	# PD: a delayed Emax model with delay time assumed to be gamma distributed
+	# -----------------------------------------------------------------------------------------------------------------------------
+	# drug response
+	S = E0 + Emax * C/(EC50 + C)
+	
+	# delayed drug response: int_{0}^{+infty} g(tau) S(t - tau) dtau
+	# where g is the PDF of a gamma distribution with mean being MeanDelayTime and shape being ShapeParam.
+	delayedS = gammaDelay(S, MeanDelayTime, shape = ShapeParam, hist = E0, numODE = 21)
+	
+	##================================================================================================================================
+	## Model parameters
+	##================================================================================================================================
+	# Structural parameters 
+	stparm(V = tvV)
+	stparm(Cl = tvCl)
+	stparm(D = tvD)
+	
+	# fixed effects 
+	fixef(tvV(freeze) = c(, 4.8, ))
+	fixef(tvCl(freeze) = c(, 0.9, ))
+	fixef(tvD(freeze) = c(, 5.2, ))
+	
+	# -----------------------------------------------------------------------------------------------------------------------------
+	# Model parameters for PD
+	# -----------------------------------------------------------------------------------------------------------------------------
+	stparm(Emax = tvEmax)
+	stparm(E0 = tvE0 * exp(nE0))
+	stparm(EC50 = tvEC50 * exp(nEC50))
+	stparm(MeanDelayTime = tvMeanDelayTime * exp(nMeanDelayTime))
+	stparm(ShapeParam = tvShapeParam)
+	
+	# fixed effects
+	fixef(tvEmax(freeze) = c(, 6.4, )) 
+	fixef(tvE0 = c(, 2, ))
+	fixef(tvEC50 = c(, 10, )) 
+	fixef(tvMeanDelayTime = c(, 2, )) 
+	fixef(tvShapeParam = c(, 3, )) 
+	
+	# random effects 
+	ranef(diag(nE0, nEC50, nMeanDelayTime) = c(0.1, 0.1, 0.1)) 
+	
+	##==============================================================================================================================
+	##  Residual error model 
+	##===============================================================================================================================	
+	error(EEbs = 0.1)
+	observe(EObs = delayedS * (1 + EEbs))
+}
