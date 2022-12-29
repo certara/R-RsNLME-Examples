@@ -1,5 +1,5 @@
 
-# Example 7: One Compartment IV Infusion ADDL
+# Example 7: PKPD, One Compartment Zero-Order Absorption - Delayed Emax
 
 The purpose of this example is to demonstrate how to fit a model defined by PML codes, where
 
