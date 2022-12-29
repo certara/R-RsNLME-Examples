@@ -1,19 +1,24 @@
-# Example 11: Setpwise Covariate Search & Bootstrapping (Two Compartment IV Bolus)
+# Example 12: Two Compartment IV Bolus - Stepwise Covariate Search, Bootstrapping, & VPC
 
-The purpose of this example is to demonstrate how to:
+The purpose of this example is to demonstrate how to
 
--   Define and fit the base model (described by a two-compartment model with IV bolus)
+   - Define the base model (described by a two-compartment model with IV bolus) through built-in model library,
+     fit this model to the data, create commonly used diagnostic plots, and perform VPC and then create binnless
+     and binned VPC plots through open source package "tidyvpc".
 
-    -   Load the input dataset and visualize the data
+       * Load the input dataset and visualize the data
 
-    -   Define the base model as well as mapping model variables to their corresponding input data columns
+       * Define the base model as well as mapping model variables to their corresponding input data columns
 
-    -   Using the provided initial estimates shiny app, estimatesUI, to visually determine a set of reasonable initial values for fixed effects
+       * Fit the base model
 
-    -   Fit the base model with initial estimates picked from shiny app
+       * Import estimation results to xpose database to create commonly used diagnostic plots
 
-    -   Import estimation results to xpose database to create commonly used diagnostic plots
+       * Perform VPC for the base model and create binnless and binned VPC plots through open source package "tidyvpc"
 
--   Add covariates to the base model and then identify covariates through a stepwise covariate search.
+   - Add covariates to the base model and then identify covariates through a stepwise covariate search.
 
--   Perform bootstrapping analysis for the model selected by the covariate search procedure.
+   - Perform VPC for the model selected by the covariate search procedure, and create pcVPC plot through open source
+     package "tidyvpc".
+
+   - Perform Bootstrapping analysis for the model selected by the covariate search procedure.
