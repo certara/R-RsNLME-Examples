@@ -1,50 +1,57 @@
-###################################################################################################################################
-##                              Description
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#                               Description
 ##
 ##
-## The purpose of this example is to demonstrate how to do a subpopulation type of analysis. Specifically,
-## the input dataset, OneCpt_1stOrderAbsorp_SubpopulationAnalysis.csv, contains a column "Source". For each
-## value of "Source", we want to fit the same model but have the results separated by the Source value.
+## The purpose of this example is to demonstrate how to do a subpopulation type of analysis. Specifically, the input dataset,
+## OneCpt_1stOrderAbsorp_SubpopulationAnalysis.csv, contains a column "Source". For the data corresponding to each value of "Source",
+## we want to fit it to the same model (with the estimation results also separated by the Source value).
+##
+## We also demonstrate how to import estimation results to xpose database to create some commonly used diagnostic plots
+## for each analysis.
 ##
 ##
 ## Note: To run this file, please set the working directory to the location where this file is located.
-##
-###################################################################################################################################
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-## Set up environment variables, load necessary packages
+## Load necessary packages and setup working directory
 library(Certara.RsNLME)
+library(data.table)
 library(magrittr)
+library(dplyr)
+library(ggplot2)
 setwd("./Example2")
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#       Model  ---------
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+##
+##  Load the input dataset
+##
+InputDataSetName <- "OneCpt_1stOrderAbsorp_SubpopulationAnalysis"
+dt_InputDataSet <- fread(paste0(InputDataSetName, ".csv"))
 
 
-###################################################################################################################################
-
-#########      Load the input dataset, and define the model and its associated column mapping                      ###############
-
-###################################################################################################################################
-
-
-##===================================================================================================================================
-##                             Load the input dataset
-##===================================================================================================================================
-
-input_data <-  read.csv("OneCpt_1stOrderAbsorp_SubpopulationAnalysis.csv")
-
-##===================================================================================================================================
-##                           Define the model and the associated column mapping
-##===================================================================================================================================
+##******************************************************************************************************************************************
+##
+##                            Define the model and the associated column mapping ----
+##
+##******************************************************************************************************************************************
 
 # model name
-model_name <- "OneCpt_1stOrderAbsorp_SubpopulationAnalysis_FOCE-ELS"
+ModelName <- paste0(InputDataSetName, "_FOCE-ELS")
 
-# ---------------------------------------------------------------------------------------------------------------------------------
+#
 # Define a one-compartment model with 1st-order absorption as well as the associated column mapping
 # Set the initial value of fixed effect, tvV, to 5
 # Set the covariance matrix of random effects to be a diagonal matrix with all its elements being 0.01
-# --------------------------------------------------------------------------------------------------------------------------------
+#
 model <- pkmodel(
-  absorption = "Extravascular",
-  data = input_data,
+  absorption = "FirstOrder",
+  data = dt_InputDataSet,
   ID = "ID",
   Time = "Time",
   Aa = "Dose",
@@ -55,56 +62,54 @@ model <- pkmodel(
   randomEffect(effect = c("nKa", "nV", "nCl"),
                value = rep(0.01, 3))
 
-# View the model
+#
+# View the model and its associated column mappings
+#
 print(model)
 
 
-###################################################################################################################################
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#                         Model Fitting   -----------
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-###################                        Model Fitting                                                     ###################
+# List of sort variables
+sortColumnSetUp <- SortColumns("Source")
 
-###################################################################################################################################
-
-## Run the model using the multicore host and default values for the relevant NLME engine arguments e.g., params
+## Run the model using the multicore host and default values for the relevant NLME engine arguments
 ## Note: the default values for the relevant NLME engine arguments are chosen based on the model, type ?engineParams for details.
 ##       For example, for this example, FOCE-ELS is the default method for estimation, and Sandwich is the default method for
 ##       standard error calculations.
+localMulticoreHost <- hostParams(hostName = "Local_Multicore", parallelMethod = "Multicore", numCores = 4)
 
-local_multicore_host <- hostParams(hostName = "Local_Multicore", parallelMethod = "Multicore", numCores = 4)
-
-job <- sortfit(model, hostPlatform = local_multicore_host, sortColumns = SortColumns("Source"))
+job <- sortfit(model, hostPlatform = localMulticoreHost, sortColumns = SortColumns("Source"))
 
 ## View estimation results
-print(job[c("Overall", "theta", "omega")])
+print(job$Overall)
 
-## Plot Convergence Data
-library(ggplot2)
 
-convergence_data <- job$ConvergenceData
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#                       Diagnostic plots  ----------
+#
+#
+# Here we demonstrate how to use ggplot2 to plot convergence data and DV vs PRED
 
-ggplot(convergence_data, aes(Iter, Value, group = 1)) +
+## Convergence Plots ----
+
+convergenceData <- job$ConvergenceData
+
+ggplot(convergenceData, aes(Iter, Value, group = 1)) +
   geom_line() +
   facet_wrap(~Parameter + Source, ncol = 2, scales = "free") +
   xlab("Iteration") +
   ylab("")
 
-
-
-
-###################################################################################################################################
-
-###################                      Diagnostic plots                                                 ########################
-
-###################################################################################################################################
-
-library(dplyr)
-library(ggplot2)
-
-## Extract columns of interest from job$residuals and create data for plotting
-dv_pred_data <- job$residuals %>%
+dvpredData <- job$residuals %>%
   select(Source, DV, PRED)
 
-ggplot(dv_pred_data, aes(PRED, DV)) +
+ggplot(dvpredData, aes(PRED, DV)) +
   facet_wrap(~Source, scales = "fixed") +
   geom_point(alpha = 0.3) +
   geom_smooth() +

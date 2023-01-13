@@ -1,19 +1,18 @@
-# Example 11: Stepwise Covariate Search & Bootstrapping (Two Compartment IV Bolus)
+# Example 11: One Compartment First Order Absorption Emax Categorical Model with VPC
 
-The purpose of this example is to demonstrate how to:
+The purpose of this file is to demonstrate how to
 
--   Define and fit the base model (described by a two-compartment model with IV bolus)
+  - Fit a model defined by PML codes, where
 
-    -   Load the input dataset and visualize the data
+       * the PK portion of the model is described by a one-compartment model with first-order absorption,
 
-    -   Define the base model as well as mapping model variables to their corresponding input data columns
+       * the PD portion of the model is described by an Emax model and a categorical model with three categories
 
-    -   Using the provided initial estimates shiny app, estimatesUI, to visually determine a set of reasonable initial values for fixed effects
+    See `OneCpt1stOrderAbsorp_Emax_CategoricalModel.mdl` in the same directory where this file is located for details.
 
-    -   Fit the base model with initial estimates picked from shiny app
+  - Import estimation results to xpose database to create some commonly used diagnostic plots for each continuous observed variable
 
-    -   Import estimation results to xpose database to create commonly used diagnostic plots
+  - Perform VPC for the model
 
--   Add covariates to the base model and then identify covariates through a stepwise covariate search.
+  - Create VPC plots through open source package "tidyvpc" (command-line usage) and VPC results shiny app (in Certara.VPCResults package)
 
--   Perform bootstrapping analysis for the model selected by the covariate search procedure.

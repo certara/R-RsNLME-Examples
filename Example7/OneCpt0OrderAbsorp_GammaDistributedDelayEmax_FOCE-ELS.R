@@ -1,4 +1,5 @@
-##################################################################################################################################
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
 #                         Description
 #
 # The purpose of this file is to demonstrate how to fit a model defined by PML codes, where
@@ -10,39 +11,61 @@
 # See "OneCpt0OrderAbsorp_GammaDistributedDelayEmax.mdl" in the same directory where this file is located for details.
 #
 #
+# We also demonstrate how to import estimation results to xpose database to create some commonly used diagnostic plots.
+#
 # Note: To run this file, please set the working directory to the location where this file is located.
 #
-##################################################################################################################################
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-## Load necessary packages, and set up working directory
+## Load necessary packages and set working directory
 library(Certara.RsNLME)
 library(magrittr)
+library(data.table)
 setwd("./Example7")
 
-##================================================================================================================================
-##       Load the input data
-##================================================================================================================================
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#       Model ----
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-input_data <- read.csv("OneCpt0OrderAbsorp_GammaDistributedDelayEmax.csv")
-##================================================================================================================================
-##       Load the PML codes to create a R model object and define the associated column mappings
-##================================================================================================================================
+## Load input data set
+inputDataSetName = "OneCpt0OrderAbsorp_GammaDistributedDelayEmax"
+dt_InputDataSet <- fread(paste0(inputDataSetName, ".csv"))
+
+##******************************************************************************************************************************************
+##
+##       Load the PML codes to create a R model object and define the associated column mappings -----
+##
+##******************************************************************************************************************************************
+
+# Name of the R model object to be created
+modelName <- paste0(inputDataSetName, "_FOCE-ELS")
+
+# Name of PML code file and its location
+sourceCode <- paste0(getwd(), "/", inputDataSetName, ".mdl")
 
 # Load the PML codes and link it to associated input data to create a model object
-model <- textualmodel(modelName = "OneCpt0OrderAbsorp_GammaDistributedDelayEmax_FOCE-ELS",
-                      mdl = "OneCpt0OrderAbsorp_GammaDistributedDelayEmax.mdl",
-                      data = input_data)
+model <- textualmodel(modelName = modelName, mdl = sourceCode, data = dt_InputDataSet)
 
-# Check the mapping between model variables and input data columns
+# View the model and its associated column mappings
 print(model)
-# We can see that A is not mapped. Manually map the rest of model variables to its corresponding input data columns
+
+# Manually map the un-mapped model variables to their corresponding input data columns
 model <- model %>%
-  colMapping(A = "Dose")
+  colMapping(A = Dose) #RsNLME >= 1.2.0 supports unquoted column names in colMapping()
 
 
-##================================================================================================================================
-##                          Model fitting
-##================================================================================================================================
+# View the updated column mappings
+print(model)
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#                          Model fitting ----
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ## Run the model using the default host and default values for the relevant NLME engine arguments
 ## Note: the default values for the relevant NLME engine arguments are chosen based on the model, type ?engineParams for details.
@@ -51,16 +74,43 @@ model <- model %>%
 job <- fitmodel(model)
 
 ## View estimation results
-print(job[c("Overall", "theta", "omega")])
+print(job$Overall)
 
 
-##================================================================================================================================
-##                      Diagnostic plots
-##================================================================================================================================
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#                      Diagnostic plots ----
+#
+#
+# Here we demonstrate how to import estimation results to xpose database to create some commonly used diagnostic plots (through command-line).
+#
+# Alternatively, one can view/customize diagnostic plots as well as estimation results through model results shiny app
+# (in Certara.ModelResults package), which can also be used to to generate R script and report as well as the associated R markdown.
+# This shiny app can be invoked through either the model object created above
+#
+#           resultsUI(model)
+#
+# or the xpose data base created below
+#
+#           resultsUI(xpdb = xp)
+#
+# For details on this app as well as how to use it, please visit the following link
+#
+#           https://certara.github.io/R-model-results/index.html.
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+## Imports results of an NLME run into xpose database to create commonly used diagnostic plots
 library(Certara.Xpose.NLME)
 library(xpose)
-## Imports results of an NLME model/job into xpose database to create commonly used diagnostic plots
 xp <- xposeNlmeModel(model, job)
+
+
+##******************************************************************************************************************************************
+##
+##      Observations against population or individual predictions  ----
+##
+##******************************************************************************************************************************************
 
 ## observations against population predictions
 dv_vs_pred(xp, type = "p", subtitle = "-2LL: @ofv")
@@ -69,12 +119,24 @@ dv_vs_pred(xp, type = "p", subtitle = "-2LL: @ofv")
 dv_vs_ipred(xp, type = "p", subtitle = "-2LL: @ofv, Eps shrinkage: @epsshk")
 
 
+##******************************************************************************************************************************************
+##
+##    CWRES against population predictions (PRED) or independent variable  ----
+##
+##******************************************************************************************************************************************
+
 ## CWRES against population predictions
 res_vs_pred(xp, res = "CWRES", type = "ps", subtitle = "-2LL: @ofv")
 
 ## CWRES against the independent variable
 res_vs_idv(xp, res = "CWRES", type = "ps", subtitle = "-2LL: @ofv")
 
+
+##******************************************************************************************************************************************
+##
+##          Individual plots  -----
+##
+##******************************************************************************************************************************************
 
 ## Observations, individual predictions and population predictions plotted against the independent variable for every individual
 ind_plots(xp, subtitle = "-2LL: @ofv, Eps shrinkage: @epsshk")

@@ -1,0 +1,58 @@
+test(){
+	
+	# ===============================================================
+	# PK model: one compartment model with 1st order absorption 
+	# =============================================================== 
+	cfMicro(A1, Cl / V, first = (Aa = Ka))
+	dosepoint(Aa)
+	C = A1 / V
+	
+	# residual error model 
+	error(CEps = 0.1)
+	observe(CObs = C * (1 + CEps))
+	
+	# ----------------------------------------------------------------
+	# PK model parameters
+	# ----------------------------------------------------------------
+	# Structural model parameters
+	stparm(Ka = exp(tvlogKa + nlogKa))
+	stparm(V = exp(tvlogV + nlogV))
+	stparm(Cl = exp(tvlogCl + nlogCl))
+	
+	# fixed effects 
+	fixef(tvlogKa = c(, -1, ))
+	fixef(tvlogV = c(, 2, ))
+	fixef(tvlogCl = c(, 0, ))
+	
+	# random effects 
+	ranef(diag(nlogV, nlogCl, nlogKa) = c(1, 1, 1))
+	
+
+	# ================================================================	
+	# PD model
+	# ================================================================
+	E = Emax * C / (EC50 + C)
+	
+	## Residual error model 
+	error(EEps = 0.1)
+	observe(EObs = E * (1 + EEps))
+	
+	## Categorical model 	
+	multi(CategoricalObs, ilogit, -E, -(E + CatParam))
+	
+	# ----------------------------------------------------------------
+	# Categorical model parameters
+	# ----------------------------------------------------------------
+	# structural model parameters
+	stparm(EC50 = exp(tvlogEC50 + nlogEC50))
+	stparm(Emax = exp(tvlogEmax + nlogEmax))
+	stparm(CatParam = exp(tvlogCatParam + nlogCatParam))
+	
+	# fixed effects 
+	fixef(tvlogEC50 = c(, 2, ))
+	fixef(tvlogEmax = c(, -2, ))
+	fixef(tvlogCatParam = c(, 1, ))
+	
+	# random effects 
+	ranef(diag(nlogEC50, nlogEmax, nlogCatParam) = c(1, 1, 1))	
+}
