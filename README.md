@@ -12,7 +12,7 @@ This repository provides a collection RsNLME examples.
 - Example 8: One Compartment First-Order Absorption Event Hazard (PKPD)
 - Example 9: One Compartment IV Bolus - Indirect Limited Inhibition (PKPD)
 - Example 10: Two Compartment IV Bolus - Simulation
-- Example 11: Two Compartment IV Bolus - Stepwise Covariate Search & Bootstrapping
+- Example 11: One Compartment First Order Absorption Emax Categorical Model with VPC
 - Example 12: Two Compartment IV Bolus - Stepwise Covariate Search, Bootstrapping, & VPC
 
 Visit the [RsNLME Documentation Website](https://certara.github.io/R-RsNLME/) for additional details.
