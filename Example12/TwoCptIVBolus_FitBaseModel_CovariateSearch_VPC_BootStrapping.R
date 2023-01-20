@@ -448,7 +448,6 @@ dt_ObsData <- finalVPCJob$predcheck0
 ## predout contains simulated data for all observed variables
 ##
 ##  Note: If PRED is requested to be outputted (i.e., outputPRED = TRUE), then it also contains PRED for continuous observed variables
-##        (those results corresponding to REPLICATE = -1)
 ##
 dt_SimData <- finalVPCJob$predout
 

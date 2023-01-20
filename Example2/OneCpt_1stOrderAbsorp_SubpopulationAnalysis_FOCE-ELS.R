@@ -7,9 +7,6 @@
 ## OneCpt_1stOrderAbsorp_SubpopulationAnalysis.csv, contains a column "Source". For the data corresponding to each value of "Source",
 ## we want to fit it to the same model (with the estimation results also separated by the Source value).
 ##
-## We also demonstrate how to import estimation results to xpose database to create some commonly used diagnostic plots
-## for each analysis.
-##
 ##
 ## Note: To run this file, please set the working directory to the location where this file is located.
 #
