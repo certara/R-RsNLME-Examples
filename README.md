@@ -1,6 +1,6 @@
 # RsNLME Examples
 
-This repository provides a collection RsNLME examples.
+This repository provides a collection of RsNLME examples.
 
 - Example 1: One Compartment First-Order Absorption Steady State
 - Example 2: One Compartment First-Order Absorption Subpopulation Analysis
