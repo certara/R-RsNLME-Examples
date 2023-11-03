@@ -14,7 +14,11 @@
 library(Certara.RsNLME)
 library(data.table)
 library(magrittr)
-setwd("./Example1")
+if (Sys.getenv("RSTUDIO") == 1) {
+  setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+} else {
+  setwd("./Example1")
+}
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

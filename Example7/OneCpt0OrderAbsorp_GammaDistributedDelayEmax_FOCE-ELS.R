@@ -22,7 +22,12 @@
 library(Certara.RsNLME)
 library(magrittr)
 library(data.table)
-setwd("./Example7")
+
+if (Sys.getenv("RSTUDIO") == 1) {
+  setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+} else {
+  setwd("./Example7")
+}
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #
@@ -140,3 +145,4 @@ res_vs_idv(xp, res = "CWRES", type = "ps", subtitle = "-2LL: @ofv")
 
 ## Observations, individual predictions and population predictions plotted against the independent variable for every individual
 ind_plots(xp, subtitle = "-2LL: @ofv, Eps shrinkage: @epsshk")
+

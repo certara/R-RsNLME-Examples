@@ -18,7 +18,12 @@ library(Certara.RsNLME)
 library(magrittr)
 library(data.table)
 library(ggplot2)
-setwd("./Example10")
+
+if (Sys.getenv("RSTUDIO") == 1) {
+  setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+} else {
+  setwd("./Example10")
+}
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

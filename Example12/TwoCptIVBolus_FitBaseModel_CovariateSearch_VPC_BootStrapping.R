@@ -36,7 +36,12 @@ library(magrittr)
 library(Certara.Xpose.NLME)
 library(xpose)
 library(tidyvpc)
-setwd("./Example12")
+
+if (Sys.getenv("RSTUDIO") == 1) {
+  setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+} else {
+  setwd("./Example12")
+}
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #
